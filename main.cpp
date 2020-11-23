@@ -8,7 +8,7 @@ using namespace std;
 // Total 256 Words = 1024 Bytes of Main Memory
 // Let Cache can have 16 Words = 64 Bytes of Cache Memory
 #define WORD_SIZE 4 // Each Word have 4 Bytes of Memory
-#define BLOCK_SIZE 2 // Each Block will have 2 Bytes of Memory
+#define BLOCK_SIZE 2 // Each Block will have 2 Words of Memory
 
 
 typedef int BIT;
@@ -20,6 +20,14 @@ typedef WORD BLOCK[BLOCK_SIZE];
 BLOCK MAIN[MAIN_MEMORY_SIZE] = {0};
 BLOCK CACHE[CACHE_MEMORY_SIZE];
 
+int CACHE_TAGS[CACHE_MEMORY_SIZE] = {-1,-1,-1,-1,-1,-1,-1,-1};
+int recent_position = -1;
+
+
+
+
+
+int HIT = 0, MISS = 0;
 
 
 // Last Parameter named 'choice' will be used to identify to where Data is to be Inserted
@@ -40,7 +48,7 @@ void insert(int new_bit_data, int block = 0, int word = 0, int byte = 0, int bit
 // ##### NOTE - No Matter we transfer data from AnyWhere to Anywhere, whole Block should be transfered. #####
 
 // [ No Issues of Bandwidth will be there while Tranferring as whole word will be get transferred ]
-void transfer(int main_block,int main_word,int cache_block, int cache_word,int choice = 0){
+void transfer(int main_block,int cache_block,int choice = 0){
 
     if(choice == 0){
         // Main => Cache Memory
@@ -50,6 +58,8 @@ void transfer(int main_block,int main_word,int cache_block, int cache_word,int c
 
                     CACHE[cache_block][wo][by][bi] = MAIN[main_block][wo][by][bi];
 
+                    CACHE_TAGS[recent_position] = main_block;
+                    recent_position++;
                 }
             }
         }
@@ -76,10 +86,13 @@ void transfer(int main_block,int main_word,int cache_block, int cache_word,int c
 // Default parameters are used as 1, if function is called without parameter loop will not execute, and no output will be generated
 // So Make Sure to pass some no.
 void see_cacheMemory(int to_count = 1){
+
     if(to_count <= 8){
         // TO Ensure Input Number is With in Limits
-
-        cout<<"\n\t\t CACHE MEMORY MATRIX [BLOCK = "<<to_count<<"][WORD = "<<BLOCK_SIZE<<"] \t\t\n";
+        for(int i = 0; i < CACHE_MEMORY_SIZE; i++){
+            cout<<CACHE_TAGS[i]<<"[ "<<i<<" ]"<<", ";
+        }
+        cout<<"\n\t\t CACHE MEMORY MATRIX [BLOCK = "<<to_count<<"][Each Row Represents a word] \t\t\n";
         for(int bl = 0; bl < to_count ; bl++){
             for(int wo = 0; wo < BLOCK_SIZE; wo++){
                 for(int by = 0; by < WORD_SIZE; by++){
@@ -101,7 +114,7 @@ void see_mainMemory(int to_count = 1){
     if(to_count <= 128){
         // TO Ensure Input Number is With in Limits
 
-        cout<<"\n\t\t MAIN MEMORY MATRIX [BLOCK = "<<to_count<<"][WORD = "<<BLOCK_SIZE<<"]\t\t\n";
+        cout<<"\n\t\t MAIN MEMORY MATRIX [BLOCK = "<<to_count<<"][Each Row Represents a word]\t\t\n";
         for(int bl = 0; bl < to_count ; bl++){
             for(int wo = 0; wo < BLOCK_SIZE; wo++){
                 for(int by = 0; by < WORD_SIZE; by++){
@@ -182,11 +195,39 @@ void INSERT_CLI(){
 
     insert(data_no,block_no,word_no,byte_no,bit_no,chip-1);// chip -1 for 0 to Main Memory or 1 to Cache Memory
 
-
-
-
-
 }
+
+
+void read_request(){
+    int read;char status = 'Y';
+    do{
+        cout<<" read_requester@admin [enter between 0 to "<< MAIN_MEMORY_SIZE -1 <<"]  $ ";cin>>read;// reading block no. of main Memory to be there on Cache or not
+
+        cout<<"\n ----------- Searching it in Cache -------------- \n";
+        bool found = false;
+        for(int i = 0; i < CACHE_MEMORY_SIZE; i++){
+            if(CACHE_TAGS[i] == read){
+                found = true;
+                cout<<"\n This was Hit ";
+                HIT++;
+                cout<<" [ TOTAL HITS = "<<HIT<<" \n";
+            }
+        }
+        if(found == false){
+            MISS++;
+            cout<<"\n This was Miss [TOTAL MISS = ]"<<MISS<<" \n";
+            // read var has block number of main Memory to be shifted from MM to CM
+            recent_position++;
+            transfer(read,recent_position,0);// MM to CM
+        }
+
+        cout<<"\n =========== STATUS =========== \n";
+        cout<<" TOTAL ACTIONS = "<<HIT + MISS<<"\n";
+        cout<<"\n\n Want to Read Again [Y/N] :- ";
+        cin>>status;
+    }while((status == 'Y') || (status == 'y'));
+}
+
 int main(){
 
         cout<<" Temporary Store address 00000001 ";
@@ -196,6 +237,7 @@ int main(){
 
         START_MENU:
         see_mainMemory();
+        see_cacheMemory();
         cout<<"\t\t Main Menu"
             <<"\n1. Insert Numbers at Positions \t\t [ Press 1 ]"
             <<"\n2. Read Numbers \t\t\t [ Press 2 ]"
@@ -204,10 +246,11 @@ int main(){
         switch(decide)
         {
             case 1: INSERT_CLI(); goto START_MENU;
-            case 2: goto START_MENU;
+            case 2: read_request(); goto START_MENU;
             case 3: goto exit;
             default : cout<<"\n Incorrect Key Pressed \n"; goto START_MENU;
         }
+
         // see_mainMemory();
         // transfer(0,0,0,0,0);
         // cout<<"\n Transfer Done \n";
