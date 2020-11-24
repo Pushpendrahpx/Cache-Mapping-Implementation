@@ -293,9 +293,9 @@ int main(){
         START_MENU:
         see_mainMemory();
         see_cacheMemory();
-        cout<<"\t\t ====================== Main Menu ====================== "
+        cout<<"\t\t ====================== Main Menu [use Read Commands to See Caches Happening] ====================== "
             <<"\n1. Insert Numbers at Positions \t\t [ Press 1 ]"
-            <<"\n2. Read Numbers \t\t\t [ Press 2 ]"
+            <<"\n2. Read Numbers \t\t\t [ Press 2 ] [Associative Mapping]"
             <<"\n3. Exit \t\t\t\t [ Press 3 ]";
         cout<<"\n Please Enter Your Choice :- "; cin>>decide;
         switch(decide)

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include <math.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -222,8 +223,8 @@ void read_request(){
     int read;char status = 'Y';
     do{
         char name[100];
-        cout<<"\n Associative Mapping Technique [ 7 Tag Bits + 1 Offset Bit ] ";
-        cout<<"\n Enter Tag No. [ 7-Bits ] :- ";
+        cout<<"\n Direct Mapping [ 3 Tag Bits +  4 Line Bits + 1 Offset Bit ] ";
+        cout<<"\n Enter Tag No. [ 3-Bits ] :- ";
         cin>>name;
         int DECIMAL = b2d(name);
 
@@ -233,20 +234,41 @@ void read_request(){
         // cout<<" Enter Block No.[ 0 to "<< MAIN_MEMORY_SIZE -1 <<"]  :- ";cin>>read;// reading block no. of main Memory to be there on Cache or not
 
         bool found = false;
-        for(int i = 0; i < CACHE_MEMORY_SIZE; i++){
-            if(CACHE_TAGS[i] == read){
+                    // for(int i = 0; i < CACHE_MEMORY_SIZE; i++){
+                    //     if(CACHE_TAGS[i] == read){
 
 
 
 
-                found = true;
-                printf("\x1B[32m \n This was Hit \033[0m\t\t"); //
-                cout<<"\n Data Was Present in Cache \n";
-                HIT++;
 
-                break;
-            }
-        }
+                    //         found = true;
+                    //         printf("\x1B[32m \n This was Hit \033[0m\t\t"); //
+                    //         cout<<"\n Data Was Present in Cache \n";
+                    //         HIT++;
+
+                    //         break;
+                    //     }
+                    // }
+
+        int line_number = read % CACHE_MEMORY_SIZE;
+        // int tag =
+        int tag_bit_size = 3,line_bit_size = 4,offset_bit_size = 1;
+        int TAG = 0, LINE = 0;
+        TAG = 4*atoi(&name[0]) + 2*atoi(&name[1]) + 1*atoi(&name[2]);
+        LINE = 8*atoi(&name[3]) + 4*atoi(&name[4]) + 2*atoi(&name[5]) + 1*atoi(&name[6]);
+        cout<<" TAG VALUE = "<<4*atoi(&name[0])<<"\n";
+         // CACHE_TAGS[LINE] <=== TAGS
+         for(int i = 0; i < CACHE_MEMORY_SIZE; i++){
+             if(TAG == CACHE_TAGS[i]){
+                        found = true;
+                        printf("\x1B[32m \n This was Hit \033[0m\t\t"); //
+                        cout<<"\n Data Was Present in Cache \n";
+                        HIT++;
+                        break;
+             }
+         }
+
+
         if(found == false){
 
 
@@ -255,14 +277,8 @@ void read_request(){
             cout<<"\n This was Miss [TOTAL MISS = ]"<<MISS<<" \n";
             cout<<"\n MOVED BLOCK FROM MAIN MEMORY TO CACHE \n";
             // read var has block number of main Memory to be shifted from MM to CM
-            recent_position++;
 
-            // Associative Mapping Technique
-            if(recent_position == 16){
-                recent_position = 0;
-            }
-
-
+            recent_position = LINE;
 
             transfer(read,recent_position,0);// MM to CM
 
@@ -293,7 +309,7 @@ int main(){
         START_MENU:
         see_mainMemory();
         see_cacheMemory();
-        cout<<"\t\t ====================== Main Menu ====================== "
+        cout<<"\t\t ====================== Main Menu [Direct Mapping] ====================== "
             <<"\n1. Insert Numbers at Positions \t\t [ Press 1 ]"
             <<"\n2. Read Numbers \t\t\t [ Press 2 ]"
             <<"\n3. Exit \t\t\t\t [ Press 3 ]";
