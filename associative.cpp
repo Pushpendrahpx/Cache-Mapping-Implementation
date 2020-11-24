@@ -1,10 +1,13 @@
 #include <iostream>
+#include <string.h>
+#include <math.h>
+
 using namespace std;
 
 #define BYTE_SIZE 8
 
 #define MAIN_MEMORY_SIZE 128 // No. of Blocks in Main Memory
-#define CACHE_MEMORY_SIZE 8 // No. of Blocks in Cache Memory
+#define CACHE_MEMORY_SIZE 16 // No. of Blocks in Cache Memory
 // Total 256 Words = 1024 Bytes of Main Memory
 // Let Cache can have 16 Words = 64 Bytes of Cache Memory
 #define WORD_SIZE 4 // Each Word have 4 Bytes of Memory
@@ -18,9 +21,9 @@ typedef WORD BLOCK[BLOCK_SIZE];
 
 
 BLOCK MAIN[MAIN_MEMORY_SIZE] = {0};
-BLOCK CACHE[CACHE_MEMORY_SIZE];
+BLOCK CACHE[CACHE_MEMORY_SIZE] = {0};
 
-int CACHE_TAGS[CACHE_MEMORY_SIZE] = {-1,-1,-1,-1,-1,-1,-1,-1};
+int CACHE_TAGS[CACHE_MEMORY_SIZE] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 int recent_position = -1;
 
 
@@ -59,7 +62,6 @@ void transfer(int main_block,int cache_block,int choice = 0){
                     CACHE[cache_block][wo][by][bi] = MAIN[main_block][wo][by][bi];
 
                     CACHE_TAGS[recent_position] = main_block;
-                    recent_position++;
                 }
             }
         }
@@ -89,12 +91,18 @@ void see_cacheMemory(int to_count = 1){
 
     if(to_count <= 8){
         // TO Ensure Input Number is With in Limits
+        cout<<" Tag Values of Cache ["<<CACHE_MEMORY_SIZE<<"] - ";
         for(int i = 0; i < CACHE_MEMORY_SIZE; i++){
-            cout<<CACHE_TAGS[i]<<"[ "<<i<<" ]"<<", ";
+            if(CACHE_TAGS[i] == -1){
+                cout<<"NULL";
+            }else
+                cout<<CACHE_TAGS[i];
+            cout<<", ";
         }
-        cout<<"\n\t\t CACHE MEMORY MATRIX [BLOCK = "<<to_count<<"][Each Row Represents a word] \t\t\n";
+        cout<<"\n\t\t  =========  CACHE MEMORY MATRIX  ========= \n\t\t\t\t [BLOCK = "<<to_count-1<<"][Each Row Represents a word] \t\t\n";
         for(int bl = 0; bl < to_count ; bl++){
             for(int wo = 0; wo < BLOCK_SIZE; wo++){
+                cout<<"\t\t Word "<<wo<<" => ";
                 for(int by = 0; by < WORD_SIZE; by++){
                     for(int bi = 0;  bi < BYTE_SIZE ; bi++){
                         cout<<CACHE[bl][wo][by][bi];
@@ -114,9 +122,10 @@ void see_mainMemory(int to_count = 1){
     if(to_count <= 128){
         // TO Ensure Input Number is With in Limits
 
-        cout<<"\n\t\t MAIN MEMORY MATRIX [BLOCK = "<<to_count<<"][Each Row Represents a word]\t\t\n";
+        cout<<"\n\t\t ========= MAIN MEMORY MATRIX  ========= \n\t\t\t\t [BLOCK = "<<to_count-1<<"][Each Row Represents a word]\t\t\n";
         for(int bl = 0; bl < to_count ; bl++){
             for(int wo = 0; wo < BLOCK_SIZE; wo++){
+                cout<<"\t\t Word "<<wo<<" => ";
                 for(int by = 0; by < WORD_SIZE; by++){
                     for(int bi = 0;  bi < BYTE_SIZE ; bi++){
                         cout<<MAIN[bl][wo][by][bi];
@@ -197,48 +206,94 @@ void INSERT_CLI(){
 
 }
 
+int b2d(char *str){
+    int len = strlen(str);
+    int decimal = 0;
+    for(int i = len-1; i >= 0; i--){
+        int digit = str[i] == '0' ? 0 : 1;
+        decimal += digit * pow(2,len-i-1);
+    }
+    return decimal;
+}
 
 void read_request(){
+
+
     int read;char status = 'Y';
     do{
-        cout<<" read_requester@admin [enter between 0 to "<< MAIN_MEMORY_SIZE -1 <<"]  $ ";cin>>read;// reading block no. of main Memory to be there on Cache or not
+        char name[100];
+        cout<<"\n Associative Mapping Technique [ 7 Tag Bits + 1 Offset Bit ] ";
+        cout<<"\n Enter Tag No. [ 7-Bits ] :- ";
+        cin>>name;
+        int DECIMAL = b2d(name);
 
-        cout<<"\n ----------- Searching it in Cache -------------- \n";
+
+
+        read = DECIMAL;
+        // cout<<" Enter Block No.[ 0 to "<< MAIN_MEMORY_SIZE -1 <<"]  :- ";cin>>read;// reading block no. of main Memory to be there on Cache or not
+
         bool found = false;
         for(int i = 0; i < CACHE_MEMORY_SIZE; i++){
             if(CACHE_TAGS[i] == read){
+
+
+
+
                 found = true;
-                cout<<"\n This was Hit ";
+                printf("\x1B[32m \n This was Hit \033[0m\t\t"); //
+                cout<<"\n Data Was Present in Cache \n";
                 HIT++;
-                cout<<" [ TOTAL HITS = "<<HIT<<" \n";
+
+                break;
             }
         }
         if(found == false){
+
+
+
             MISS++;
             cout<<"\n This was Miss [TOTAL MISS = ]"<<MISS<<" \n";
+            cout<<"\n MOVED BLOCK FROM MAIN MEMORY TO CACHE \n";
             // read var has block number of main Memory to be shifted from MM to CM
             recent_position++;
+
+            // Associative Mapping Technique
+            if(recent_position == 16){
+                recent_position = 0;
+            }
+
+
+
             transfer(read,recent_position,0);// MM to CM
+
         }
 
-        cout<<"\n =========== STATUS =========== \n";
+        cout<<"\n =========== STATUS  ===========  \n";
+
         cout<<" TOTAL ACTIONS = "<<HIT + MISS<<"\n";
+
+
+        cout<<" HITS = "<<HIT;
+
+        cout<<", MISS = "<<MISS;
+
+        cout<<"\nHit Ratio = "<< (float) ((float) (HIT))/((float)(HIT+MISS));
         cout<<"\n\n Want to Read Again [Y/N] :- ";
         cin>>status;
     }while((status == 'Y') || (status == 'y'));
 }
 
+
 int main(){
 
-        cout<<" Temporary Store address 00000001 ";
-        cin>>MAIN[0][0][0][1];
+        // cout<<" Temporary Store address 00000001 ";
+        // cin>>MAIN[0][0][0][1];
 
         int decide = 0;
-
         START_MENU:
         see_mainMemory();
         see_cacheMemory();
-        cout<<"\t\t Main Menu"
+        cout<<"\t\t ====================== Main Menu ====================== "
             <<"\n1. Insert Numbers at Positions \t\t [ Press 1 ]"
             <<"\n2. Read Numbers \t\t\t [ Press 2 ]"
             <<"\n3. Exit \t\t\t\t [ Press 3 ]";
