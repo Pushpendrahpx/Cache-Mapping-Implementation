@@ -267,13 +267,15 @@ void read_request(){
         TAG = 4*char2int(name[0]) + 2*char2int(name[1]) + 1*char2int(name[2]);
         LINE = 8*char2int(name[3]) + 4*char2int(name[4]) + 2*char2int(name[5]) + 1*char2int(name[6]);
         cout<<" TAG VALUE = "<<TAG<<" p \n";
+
+
          // CACHE_TAGS[LINE] <=== TAGS
-         if(CACHE_TAGS[LINE] == TAG){
-             found = true;
-                        printf("\x1B[32m \n This was Hit \033[0m\t\t"); //
-                        cout<<"\n Data Was Present in Cache \n";
-                        HIT++;
-         }
+        //  if(CACHE_TAGS[LINE] == TAG){
+        //      found = true;
+        //                 printf("\x1B[32m \n This was Hit \033[0m\t\t"); //
+        //                 cout<<"\n Data Was Present in Cache \n";
+        //                 HIT++;
+        //  }
         //  for(int i = 0; i < CACHE_MEMORY_SIZE; i++){
         //      if(TAG == CACHE_TAGS[i]){
 
