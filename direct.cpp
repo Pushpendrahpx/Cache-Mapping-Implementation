@@ -260,7 +260,6 @@ void read_request(){
                     //     }
                     // }
 
-        int line_number = read % CACHE_MEMORY_SIZE;
         // int tag =
         int tag_bit_size = 3,line_bit_size = 4,offset_bit_size = 1;
         int TAG = 0, LINE = 0;
